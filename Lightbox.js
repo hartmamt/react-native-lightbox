@@ -97,7 +97,7 @@ var Lightbox = React.createClass({
         if(this.props.navigator) {
           var route = {
             component: LightboxOverlay,
-            passProps: this.getOverlayProps(),
+            props: this.getOverlayProps(),
           };
           var routes = this.props.navigator.getCurrentRoutes();
           routes.push(route);
