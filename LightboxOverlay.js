@@ -13,9 +13,10 @@ var {
   Dimensions,
   PanResponder,
   TouchableOpacity,
-  StatusBar,
+  StatusBarIOS,
   Modal,
   Platform,
+  ScrollView
 } = React;
 
 var WINDOW_HEIGHT = Dimensions.get('window').height;
@@ -35,12 +36,11 @@ var LightboxOverlay = React.createClass({
       tension:  PropTypes.number,
       friction: PropTypes.number,
     }),
-    backgroundColor: PropTypes.string,
-    isOpen:          PropTypes.bool,
-    renderHeader:    PropTypes.func,
-    onOpen:          PropTypes.func,
-    onClose:         PropTypes.func,
-    swipeToDismiss:  PropTypes.bool,
+    isOpen:         PropTypes.bool,
+    renderHeader:   PropTypes.func,
+    onOpen:         PropTypes.func,
+    onClose:        PropTypes.func,
+    swipeToDismiss: PropTypes.bool,
   },
 
   getInitialState: function() {
@@ -60,7 +60,6 @@ var LightboxOverlay = React.createClass({
   getDefaultProps: function() {
     return {
       springConfig: { tension: 30, friction: 7 },
-      backgroundColor: 'black',
     };
   },
 
@@ -109,7 +108,9 @@ var LightboxOverlay = React.createClass({
   },
 
   open: function() {
-    StatusBar.setHidden(true, 'fade');
+    if(StatusBarIOS) {
+      StatusBarIOS.setHidden(true, 'fade');
+    }
     this.state.pan.setValue(0);
     this.setState({
       isAnimating: true,
@@ -127,7 +128,9 @@ var LightboxOverlay = React.createClass({
   },
 
   close: function() {
-    StatusBar.setHidden(false, 'fade');
+    if(StatusBarIOS) {
+      StatusBarIOS.setHidden(false, 'fade');
+    }
     this.setState({
       isAnimating: true,
     });
@@ -135,10 +138,10 @@ var LightboxOverlay = React.createClass({
       this.state.openVal,
       { toValue: 0, ...this.props.springConfig }
     ).start(() => {
+      this.props.onClose();
       this.setState({
         isAnimating: false,
       });
-      this.props.onClose();
     });
   },
 
@@ -154,7 +157,6 @@ var LightboxOverlay = React.createClass({
       renderHeader,
       swipeToDismiss,
       origin,
-      backgroundColor,
     } = this.props;
 
     var {
@@ -189,7 +191,7 @@ var LightboxOverlay = React.createClass({
       height: openVal.interpolate({inputRange: [0, 1], outputRange: [origin.height, WINDOW_HEIGHT]}),
     }];
 
-    var background = (<Animated.View style={[styles.background, { backgroundColor: backgroundColor }, lightboxOpacityStyle]}></Animated.View>);
+    var background = (<Animated.View style={[styles.background, lightboxOpacityStyle]}></Animated.View>);
     var header = (<Animated.View style={[styles.header, lightboxOpacityStyle]}>{(renderHeader ?
       renderHeader(this.close) :
       (
@@ -199,9 +201,21 @@ var LightboxOverlay = React.createClass({
       )
     )}</Animated.View>);
     var content = (
+      <ScrollView
+        style={{ flex: 1 }}
+        automaticallyAdjustContentInsets={true}
+        centerContent
+        bounces={false}
+        centerContent={false}
+        minimumZoomScale={1}
+        maximumZoomScale={5}
+      >
       <Animated.View style={[openStyle, dragStyle]} {...handlers}>
+
         {this.props.children}
       </Animated.View>
+
+    </ScrollView>
     );
     if(this.props.navigator) {
       return (
@@ -229,9 +243,10 @@ var styles = StyleSheet.create({
     left: 0,
     width: WINDOW_WIDTH,
     height: WINDOW_HEIGHT,
+    backgroundColor: 'black',
   },
   open: {
-    position: 'absolute',
+  //  position: 'absolute',
     flex: 1,
     justifyContent: 'center',
     // Android pan handlers crash without this declaration:
