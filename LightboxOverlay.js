@@ -204,7 +204,6 @@ var LightboxOverlay = React.createClass({
       <ScrollView
         style={{ flex: 1 }}
         automaticallyAdjustContentInsets={true}
-        centerContent
         bounces={false}
         centerContent={false}
         minimumZoomScale={1}
